@@ -1,0 +1,92 @@
+@prefix atom:  <http://lv2plug.in/ns/ext/atom#> .
+@prefix doap:  <http://usefulinc.com/ns/doap#> .
+@prefix lv2:   <http://lv2plug.in/ns/lv2core#> .
+@prefix patch: <http://lv2plug.in/ns/ext/patch#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
+@prefix state: <http://lv2plug.in/ns/ext/state#> .
+@prefix urid:  <http://lv2plug.in/ns/ext/urid#> .
+@prefix work:  <http://lv2plug.in/ns/ext/worker#> .
+@prefix param: <http://lv2plug.in/ns/ext/parameters#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/>.
+@prefix mod: <http://moddevices.com/ns/mod#>.
+@prefix bsize:  <http://lv2plug.in/ns/ext/buf-size#>.
+@prefix units: <http://lv2plug.in/ns/extensions/units#> .
+@prefix modgui: <http://moddevices.com/ns/modgui#>.
+@prefix epp: <http://lv2plug.in/ns/ext/port-props#>.
+
+<http://moddevices.com/plugins/mod-devel/mod-cv-jack-detector>
+a lv2:Plugin, mod:ControlVoltagePlugin;
+
+doap:name "CV Jack Detector";
+doap:license "GPL v2+";
+doap:developer [
+    foaf:name "Jan Janssen";
+    foaf:homepage <>;
+    foaf:mbox <mailto:jan@mod.audio>;
+    ];
+
+doap:maintainer [
+    foaf:name "MOD";
+    foaf:homepage <http://mod.audio>;
+    foaf:mbox <mailto:jan@mod.audio;
+    ];
+
+    lv2:minorVersion 3;
+    lv2:microVersion 0;
+
+    lv2:project <http://lv2plug.in/ns/lv2> ;
+    lv2:requiredFeature urid:map ,
+        work:schedule ;
+    lv2:optionalFeature lv2:hardRTCapable ,
+        state:loadDefaultState ;
+    lv2:extensionData state:interface ,
+        work:interface ;
+
+rdfs:comment """
+
+A plugin that detects what HW jacks are plugged into the Dwarf and translates that to a CV signal
+
+""";
+
+lv2:port
+[
+    a lv2:OutputPort, lv2:CVPort, mod:CVPort;
+    lv2:index 0;
+    lv2:minimum 0.0 ;
+    lv2:maximum 10.0 ;
+    lv2:symbol "Cvoutput";
+    lv2:name "CV Output";
+]
+,
+[
+    a lv2:InputPort, lv2:ControlPort;
+    lv2:index 1;
+    lv2:symbol "LISTEN_PORT";
+    lv2:name "Port";
+    lv2:portProperty lv2:enumeration , lv2:integer ;
+    lv2:default 0 ;
+    lv2:minimum 0 ;
+    lv2:maximum 6 ;
+    lv2:scalePoint
+    [
+        rdfs:label "Input 1" ;
+        rdf:value 0 
+    ] , [
+        rdfs:label "Input 2" ;
+        rdf:value 1 
+    ], [
+        rdfs:label "Input 1 + 2" ;
+        rdf:value 2 
+    ], [
+        rdfs:label "Output 1" ;
+        rdf:value 3 
+    ], [
+        rdfs:label "Output 2" ;
+        rdf:value 4 
+    ], [
+        rdfs:label "Output 1 + 2" ;
+        rdf:value 5 
+    ]
+]
+.

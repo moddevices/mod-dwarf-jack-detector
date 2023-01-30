@@ -1,0 +1,19 @@
+/* = CONTAINER
+================================================ */
+.mod-auto-input-selector{{{cns}}} {
+    background-image: url(/resources/mod_auto_input_selector_bg.png{{{ns}}});
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: 156px 351px;
+    height: 351px;
+    position: absolute;
+    width: 156px;
+}
+
+/* PORTS
+================================================ */
+
+.mod-auto-input-selector{{{cns}}} .mod-pedal-input,
+.mod-auto-input-selector{{{cns}}} .mod-pedal-output {
+    top: 130px;
+}

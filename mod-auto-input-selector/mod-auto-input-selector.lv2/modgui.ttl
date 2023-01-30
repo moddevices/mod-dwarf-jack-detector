@@ -1,0 +1,14 @@
+@prefix modgui: <http://moddevices.com/ns/modgui#> .
+@prefix lv2:    <http://lv2plug.in/ns/lv2core#> .
+
+<http://moddevices.com/plugins/mod-devel/mod-auto-input-selector>
+    modgui:gui [
+        modgui:resourcesDirectory <modgui> ;
+        modgui:iconTemplate <modgui/icon-auto-input-selector.html> ;
+        modgui:stylesheet <modgui/stylesheet-auto-input-selector.css> ;
+        modgui:screenshot <modgui/mod_auto_input_selector_ss.png> ;
+        modgui:thumbnail <modgui/mod_auto_input_selector_tn.png> ;
+        modgui:brand "MOD" ;
+        modgui:license "CC BY-NC-ND 4.0";
+        modgui:label "Auto Input Selector" ;
+    ] .
