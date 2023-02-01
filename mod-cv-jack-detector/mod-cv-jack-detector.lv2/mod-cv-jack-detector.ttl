@@ -16,31 +16,28 @@
 @prefix epp: <http://lv2plug.in/ns/ext/port-props#>.
 
 <https://mod.audio/plugins/mod-cv-jack-detector>
-    a doap:Project, lv2:Plugin, mod:ControlVoltagePlugin ;
+    a lv2:Plugin, mod:ControlVoltagePlugin ;
 
     doap:name "CV Jack Detector" ;
     doap:license "http://spdx.org/licenses/GPL-2.0-or-later.html" ;
 
     doap:developer [
         foaf:name "Jan Janssen" ;
-        foaf:homepage <> ;
         foaf:mbox <mailto:jan@mod.audio> ;
     ] , [
         foaf:name "falkTX" ;
-        foaf:homepage <> ;
         foaf:mbox <mailto:falktx@mod.audio> ;
     ] ;
 
     doap:maintainer [
         foaf:name "MOD" ;
         foaf:homepage <http://mod.audio> ;
-        foaf:mbox <mailto:jan@mod.audio> ;
+        foaf:mbox <mailto:support@mod.audio> ;
     ];
 
     lv2:minorVersion 1 ;
     lv2:microVersion 0 ;
 
-    lv2:project <http://lv2plug.in/ns/lv2> ;
     lv2:requiredFeature urid:map , work:schedule ;
     lv2:optionalFeature lv2:hardRTCapable , state:loadDefaultState ;
     lv2:extensionData state:interface , work:interface ;

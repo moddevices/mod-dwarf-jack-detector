@@ -4,4 +4,4 @@
 <https://mod.audio/plugins/mod-auto-input-selector>
     a lv2:Plugin ;
     lv2:binary <mod-auto-input-selector.so> ;
-    rdfs:seeAlso <mod-auto-input-selector.ttl>, <modgui.ttl> .
+    rdfs:seeAlso <mod-auto-input-selector.ttl> , <modgui.ttl> .

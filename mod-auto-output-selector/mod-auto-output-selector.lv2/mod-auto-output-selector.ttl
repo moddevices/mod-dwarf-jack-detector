@@ -16,25 +16,23 @@
 @prefix epp: <http://lv2plug.in/ns/ext/port-props#>.
 
 <https://mod.audio/plugins/mod-auto-output-selector>
-    a doap:Project , lv2:Plugin , lv2:UtilityPlugin ;
+    a lv2:Plugin , lv2:UtilityPlugin ;
 
     doap:name "Auto Output Selector" ;
     doap:license "http://spdx.org/licenses/GPL-2.0-or-later.html" ;
 
     doap:developer [
         foaf:name "Jan Janssen" ;
-        foaf:homepage <> ;
         foaf:mbox <mailto:jan@mod.audio> ;
     ] , [
         foaf:name "falkTX" ;
-        foaf:homepage <> ;
         foaf:mbox <mailto:falktx@mod.audio> ;
     ] ;
 
     doap:maintainer [
         foaf:name "MOD Audio";
         foaf:homepage <https://mod.audio> ;
-        foaf:mbox <mailto:jan@mod.audio> ;
+        foaf:mbox <mailto:support@mod.audio> ;
     ] ;
 
     lv2:minorVersion 1 ;
