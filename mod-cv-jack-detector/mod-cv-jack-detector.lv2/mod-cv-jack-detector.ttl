@@ -21,16 +21,8 @@
     doap:name "CV Jack Detector" ;
     doap:license "http://spdx.org/licenses/GPL-2.0-or-later.html" ;
 
-    doap:developer [
-        foaf:name "Jan Janssen" ;
-        foaf:mbox <mailto:jan@mod.audio> ;
-    ] , [
-        foaf:name "falkTX" ;
-        foaf:mbox <mailto:falktx@mod.audio> ;
-    ] ;
-
     doap:maintainer [
-        foaf:name "MOD" ;
+        foaf:name "MOD Audio";
         foaf:homepage <http://mod.audio> ;
         foaf:mbox <mailto:support@mod.audio> ;
     ];

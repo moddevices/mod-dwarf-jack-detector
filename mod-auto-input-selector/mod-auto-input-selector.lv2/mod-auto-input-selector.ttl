@@ -21,16 +21,8 @@
     doap:name "Auto Input Selector";
     doap:license "http://spdx.org/licenses/GPL-2.0-or-later.html" ;
 
-    doap:developer [
-        foaf:name "Jan Janssen" ;
-        foaf:mbox <mailto:jan@mod.audio> ;
-    ] , [
-        foaf:name "falkTX" ;
-        foaf:mbox <mailto:falktx@mod.audio> ;
-    ] ;
-
     doap:maintainer [
-        foaf:name "MOD" ;
+        foaf:name "MOD Audio";
         foaf:homepage <https://mod.audio> ;
         foaf:mbox <mailto:support@mod.audio> ;
     ];
@@ -43,6 +35,7 @@
     lv2:extensionData state:interface , work:interface ;
 
     mod:brand "MOD" ;
+    mod:label "Auto Input Selector" ;
 
     rdfs:comment """
 The MOD Auto Input Selector is a plugin that detects which hardware inputs have a cable plugged in.

@@ -21,14 +21,6 @@
     doap:name "Auto Output Selector" ;
     doap:license "http://spdx.org/licenses/GPL-2.0-or-later.html" ;
 
-    doap:developer [
-        foaf:name "Jan Janssen" ;
-        foaf:mbox <mailto:jan@mod.audio> ;
-    ] , [
-        foaf:name "falkTX" ;
-        foaf:mbox <mailto:falktx@mod.audio> ;
-    ] ;
-
     doap:maintainer [
         foaf:name "MOD Audio";
         foaf:homepage <https://mod.audio> ;
