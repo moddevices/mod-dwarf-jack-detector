@@ -1,0 +1,25 @@
+.mod-auto-input-selector {
+    background-image:url(/resources/mod-auto-input-selector_bg.png{{{ns}}});
+    background-repeat:no-repeat;
+    height:274px;
+    width:200px;
+}
+.mod-auto-input-selector .mod-auto-input-selector-status {
+    background-image:url(/resources/mod-auto-input-selector_sprites.png{{{ns}}});
+    background-repeat:no-repeat;
+    background-position: 0px 0px;
+    background-size: 182px 544px;
+    position:relative;
+    top:91px;
+    left:7px;
+    width:182px;
+    height:136px;
+}
+.mod-auto-input-selector .mod-pedal-input,
+.mod-auto-input-selector .mod-pedal-output {
+    top:70px;
+}
+.mod-auto-input-selector .mod-pedal-input .mod-input,
+.mod-auto-input-selector .mod-pedal-output .mod-output {
+    margin-bottom:6px;
+}

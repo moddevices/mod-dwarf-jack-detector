@@ -1,8 +1,6 @@
-#include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdbool.h>
-#include <math.h>
+#include <stdatomic.h>
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,7 +21,7 @@
 #include "lv2/lv2plug.in/ns/ext/worker/worker.h"
 #include "lv2/lv2plug.in/ns/lv2core/lv2.h"
 
-#define PLUGIN_URI "http://moddevices.com/plugins/mod-devel/mod-auto-input-selector"
+#define PLUGIN_URI "https://mod.audio/plugins/mod-auto-input-selector"
 #define PLUGIN__loadHWJackValues  PLUGIN_URI "#loadHWJackValues"
 
 // These hardcoded paths are very, very dirty
@@ -45,22 +43,30 @@
 #define REFRESH_TIME_S      2
 
 typedef enum {
-	In1    = 0,
+    In1 = 0,
     In2,
     Out1,
     Out2,
     OutMono,
-    SummedGain
+    SummedGain,
+    Status
 } PortIndex;
 
 typedef enum {
-    OUTP_1    = 0,
+    OUTP_1 = 0,
     OUTP_2,
     OUTP_12
 } OutPort;
 
 typedef enum {
-    I1_O1    = 0,
+    StatusDisconnected = 0,
+    StatusConnectedOnly1,
+    StatusConnectedOnly2,
+    StatusConnectedBoth
+} StatusReport;
+
+typedef enum {
+    I1_O1 = 0,
     I2_O1,
     I12_O1,
     I1_O2,
@@ -105,20 +111,15 @@ typedef struct {
     // URIs
     URIs uris;
 
-    float* in1;
-    float* in2;
+    const float* in1;
+    const float* in2;
+    const float* summedGain;
     float* out1;
     float* out2;
     float* outMono;
+    float* status;
 
-    float* summedGain;
-
-    int inp_jack_1_value;
-    int inp_jack_2_value;
-    int stereo_jack_plugged;
-
-    FILE* inp_jack_1_file;
-    FILE* inp_jack_2_file;
+    atomic_int status_int;
 
     uint32_t samplerate;
     uint32_t refresh_counter;
@@ -151,28 +152,47 @@ map_uris(LV2_URID_Map* map, URIs* uris)
 static void
 ReadHWJackValues(Plugin* self)
 {
-    self->inp_jack_1_file = fopen (GPIO_INP_JACK_1, "r");
-    if (self->inp_jack_1_file == NULL) {
+    FILE* f;
+    int value1 = 0, value2 = 0;
+
+    f = fopen (GPIO_INP_JACK_1, "r");
+    if (f == NULL) {
+        value1 = 0;
         lv2_log_error(&self->logger, "Missing input 1 GPIO file\n");
     }
     else {
-        fscanf (self->inp_jack_1_file, "%d", &self->inp_jack_1_value);
-        fclose(self->inp_jack_1_file);
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wunused-result"
+        fscanf(f, "%d", &value1);
+        #pragma GCC diagnostic pop
+        fclose(f);
     }
 
-    self->inp_jack_2_file = fopen (GPIO_INP_JACK_2, "r");
-    if (self->inp_jack_2_file == NULL) {
+    f = fopen (GPIO_INP_JACK_2, "r");
+    if (f == NULL) {
+        value2 = 0;
         lv2_log_error(&self->logger, "Missing input 2 GPIO file\n");
     }
     else {
-        fscanf (self->inp_jack_2_file, "%d", &self->inp_jack_2_value);
-        fclose(self->inp_jack_2_file);
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wunused-result"
+        fscanf(f, "%d", &value2);
+        #pragma GCC diagnostic pop
+        fclose(f);
     }
 
-    if ((self->inp_jack_1_value == 1) && (self->inp_jack_2_value == 1))
-        self->stereo_jack_plugged = 1;
-    else
-        self->stereo_jack_plugged = 0;
+    if (value1 && value2) {
+        self->status_int = StatusConnectedBoth;
+    }
+    else if (value2) {
+        self->status_int = StatusConnectedOnly2;
+    }
+    else if (value1) {
+        self->status_int = StatusConnectedOnly1;
+    }
+    else {
+        self->status_int = StatusDisconnected;
+    }
 }
 
 /**
@@ -188,7 +208,7 @@ work(LV2_Handle                  instance,
      uint32_t                    size,
      const void*                 data)
 {
-    Plugin*        self = (Plugin*)instance;
+    Plugin*         self = (Plugin*)instance;
     const LV2_Atom* atom = (const LV2_Atom*)data;
 
     if (atom->type == self->uris.uri_loadHWJackValues) {
@@ -209,7 +229,6 @@ work_response(LV2_Handle  instance,
               uint32_t    size,
               const void* data)
 {
-
     return LV2_WORKER_SUCCESS;
 }
 
@@ -218,14 +237,14 @@ connect_port(LV2_Handle instance,
              uint32_t   port,
              void*      data)
 {
-	Plugin* self = (Plugin*)instance;
+    Plugin* self = (Plugin*)instance;
 
-	switch ((PortIndex)port) {
-	case In1:
-		self->in1 = (float*)data;
-		break;
+    switch ((PortIndex)port) {
+    case In1:
+        self->in1 = (const float*)data;
+        break;
     case In2:
-        self->in2 = (float*)data;
+        self->in2 = (const float*)data;
         break;
     case Out1:
         self->out1 = (float*)data;
@@ -237,9 +256,12 @@ connect_port(LV2_Handle instance,
         self->outMono = (float*)data;
         break;
     case SummedGain:
-        self->summedGain = (float*)data;
+        self->summedGain = (const float*)data;
         break;
-	}
+    case Status:
+        self->status = (float*)data;
+        break;
+    }
 }
 
 static LV2_Handle
@@ -282,7 +304,7 @@ instantiate(const LV2_Descriptor*     descriptor,
 
     self->refresh_counter = self->samplerate * REFRESH_TIME_S;
 
-	return (LV2_Handle)self;
+    return (LV2_Handle)self;
 
 fail:
     free(self);
@@ -295,7 +317,7 @@ cleanup(LV2_Handle instance)
 {
     Plugin* self = (Plugin*) instance;
 
-	free(self);
+    free(self);
 }
 
 static void
@@ -303,55 +325,64 @@ activate(LV2_Handle instance)
 {
 }
 
-
 static void
 run(LV2_Handle instance, uint32_t n_samples)
 {
     Plugin* self = (Plugin*) instance;
 
-    float summedGain = (float)*self->summedGain;
+    const float summedGain = (float)*self->summedGain;
 
-    for ( uint32_t i = 0; i < n_samples; i++)
-    {
-        if (self->stereo_jack_plugged){
-            //copy in to outp
-            self->out1[i] = self->in1[i];
-            self->out2[i] = self->in2[i];
-
-            //sum and possibly compensate for gain
-            self->outMono[i] = (self->in1[i] + self->in2[i]) * summedGain;
+    // assume no denormals in use, speeds up math operations
+    for (uint32_t i = 0; i < n_samples; i++) {
+        if (!isfinite(self->in1[i])) {
+            __builtin_unreachable();
         }
-        else if (self->inp_jack_1_value) {
-            //copy in to outp
-            self->out1[i] = self->in1[i];
-            self->out2[i] = self->in1[i];
-            self->outMono[i] = self->in1[i];
-        }
-        else if (self->inp_jack_2_value) {
-            //copy in to outp
-            self->out1[i] = self->in2[i];
-            self->out2[i] = self->in2[i];
-            self->outMono[i] = self->in2[i];
-        }
-        else {
-            //zero
-            self->out1[i] = 0.f;
-            self->out2[i] = 0.f;
-            self->outMono[i] = 0.f;
-        }
-
-        if (self->refresh_counter > 0) {
-            self->refresh_counter--;
-        }
-        else {
-            self->refresh_counter = self->samplerate * REFRESH_TIME_S;
-
-            // do not read files in realtime thread
-            LV2_Atom atom = { 0 , self->uris.uri_loadHWJackValues };
-            self->schedule->schedule_work(self->schedule->handle, sizeof(atom), &atom);
+        if (!isfinite(self->in2[i])) {
+            __builtin_unreachable();
         }
     }
 
+    switch (self->status_int)
+    {
+    case StatusConnectedOnly1:
+        memcpy(self->out1, self->in1, sizeof(float)*n_samples);
+        memcpy(self->out2, self->in1, sizeof(float)*n_samples);
+        memcpy(self->outMono, self->in1, sizeof(float)*n_samples);
+        break;
+    case StatusConnectedOnly2:
+        memcpy(self->out1, self->in2, sizeof(float)*n_samples);
+        memcpy(self->out2, self->in2, sizeof(float)*n_samples);
+        memcpy(self->outMono, self->in2, sizeof(float)*n_samples);
+        break;
+    case StatusConnectedBoth:
+        memcpy(self->out1, self->in1, sizeof(float)*n_samples);
+        memcpy(self->out2, self->in2, sizeof(float)*n_samples);
+        // sum and possibly compensate for gain
+        for (uint32_t i = 0; i < n_samples; i++) {
+            self->outMono[i] = (self->in1[i] + self->in2[i]) * summedGain;
+        }
+        break;
+    default:
+        memset(self->out1, 0, sizeof(float)*n_samples);
+        memset(self->out2, 0, sizeof(float)*n_samples);
+        memset(self->outMono, 0, sizeof(float)*n_samples);
+        break;
+    }
+
+    *self->status = self->status_int;
+
+    if (self->refresh_counter >= n_samples)
+    {
+        self->refresh_counter -= n_samples;
+    }
+    else
+    {
+        self->refresh_counter = self->samplerate * REFRESH_TIME_S;
+
+        // do not read files in realtime thread
+        LV2_Atom atom = { 0 , self->uris.uri_loadHWJackValues };
+        self->schedule->schedule_work(self->schedule->handle, sizeof(atom), &atom);
+    }
 }
 
 static void
@@ -371,22 +402,22 @@ extension_data(const char* uri)
 }
 
 static const LV2_Descriptor descriptor = {
-	PLUGIN_URI,
-	instantiate,
-	connect_port,
-	activate,
-	run,
-	deactivate,
-	cleanup,
-	extension_data
+    PLUGIN_URI,
+    instantiate,
+    connect_port,
+    activate,
+    run,
+    deactivate,
+    cleanup,
+    extension_data
 };
 
 LV2_SYMBOL_EXPORT
 const LV2_Descriptor*
 lv2_descriptor(uint32_t index)
 {
-	switch (index) {
-	case 0:  return &descriptor;
-	default: return NULL;
-	}
+    switch (index) {
+    case 0: return &descriptor;
+    default: return NULL;
+    }
 }

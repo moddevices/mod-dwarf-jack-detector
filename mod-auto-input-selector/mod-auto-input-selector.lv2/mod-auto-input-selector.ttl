@@ -15,96 +15,118 @@
 @prefix modgui: <http://moddevices.com/ns/modgui#>.
 @prefix epp: <http://lv2plug.in/ns/ext/port-props#>.
 
-<http://moddevices.com/plugins/mod-devel/mod-auto-input-selector>
-a lv2:Plugin, lv2:UtilityPlugin;
+<https://mod.audio/plugins/mod-auto-input-selector>
+    a doap:Plugin , lv2:Plugin , lv2:UtilityPlugin ;
 
-doap:name "Auto Input Selector";
-doap:license "GPL v2+";
-doap:developer [
-    foaf:name "Jan Janssen";
-    foaf:homepage <>;
-    foaf:mbox <mailto:jan@mod.audio>;
-    ];
+    doap:name "Auto Input Selector";
+    doap:license "http://spdx.org/licenses/GPL-2.0-or-later.html" ;
 
-doap:maintainer [
-    foaf:name "MOD";
-    foaf:homepage <http://mod.audio>;
-    foaf:mbox <mailto:jan@mod.audio;
+    doap:developer [
+        foaf:name "Jan Janssen" ;
+        foaf:homepage <> ;
+        foaf:mbox <mailto:jan@mod.audio> ;
+    ] , [
+        foaf:name "falkTX" ;
+        foaf:homepage <> ;
+        foaf:mbox <mailto:falktx@mod.audio> ;
+    ] ;
+
+    doap:maintainer [
+        foaf:name "MOD";
+        foaf:homepage <https://mod.audio>;
+        foaf:mbox <mailto:jan@mod.audio>;
     ];
 
     lv2:minorVersion 3;
     lv2:microVersion 0;
 
-    lv2:project <http://lv2plug.in/ns/lv2> ;
-    lv2:requiredFeature urid:map ,
-        work:schedule ;
-    lv2:optionalFeature lv2:hardRTCapable ,
-        state:loadDefaultState ;
-    lv2:extensionData state:interface ,
-        work:interface ;
+    lv2:requiredFeature urid:map , work:schedule ;
+    lv2:optionalFeature lv2:hardRTCapable , state:loadDefaultState ;
+    lv2:extensionData state:interface , work:interface ;
 
-rdfs:comment """
+    mod:brand "MOD" ;
 
+    rdfs:comment """
+The MOD Auto Input Selector is a plugin that detects which hardware inputs have a cable plugged in.
+It then uses that information to automatically route the corresponding plugin inputs to a stereo output pair and a mono output.
 
-""";
+The routing logic is as follows:
+- When only a single hardware input has a cable plugged in, it sends the corresponding plugin input to all three plugin outputs.
+- When both hardware inputs have cables plugged in, it will send plugin input 1 to plugin output 1, plugin input 2 to plugin output 2, and both plugin inputs summed to the plugin's mono output.
 
-lv2:port
-[
-    a lv2:AudioPort, lv2:InputPort;
-    lv2:index 0;
-    lv2:symbol "In1";
-    lv2:name "In 1";
-    lv2:shortname "In 1";
-],
-[
-    a lv2:AudioPort, lv2:InputPort;
-    lv2:index 1;
-    lv2:symbol "In2";
-    lv2:name "In 2";
-    lv2:shortname "In 2";
-],
-[
-    a lv2:AudioPort, lv2:OutputPort;
-    lv2:index 2;
-    lv2:symbol "Out1";
-    lv2:name "Out 1";
-    lv2:shortname "Out 1";
-],
-[
-    a lv2:AudioPort, lv2:OutputPort;
-    lv2:index 3;
-    lv2:symbol "Out2";
-    lv2:name "Out 2";
-    lv2:shortname "Out 2";
-]
-,
-[
-    a lv2:AudioPort, lv2:OutputPort;
-    lv2:index 4;
-    lv2:symbol "OutMono";
-    lv2:name "Out Mono";
-    lv2:shortname "Mono";
-]
-,
-[
-    a lv2:InputPort, lv2:ControlPort;
-    lv2:index 5;
-    lv2:symbol "summedGain";
-    lv2:name "Summed Gain";
-    lv2:portProperty lv2:enumeration , lv2:integer ;
-    lv2:default 0.5 ;
-    lv2:minimum 0 ;
-    lv2:maximum 1 ;
-    lv2:scalePoint
+There is a parameter that sets a gain reduction amount for the summed signal.
+By default, the summed signal has 6dB of gain reduction applied to maintain uniform signal levels on all plugin outputs.
+
+Please note that this plugin is designed for the MOD Dwarf; other devices are not supported.
+
+Features:
+Plugin by MOD Audio
+    """;
+
+    lv2:port
     [
-        rdfs:label "0.0dB" ;
-        rdf:value 1
-    ] , [
-        rdfs:label "-3.0dB" ;
-        rdf:value 0.75
-    ], [
-        rdfs:label "-6.0dB" ;
-        rdf:value 0.5
+        a lv2:AudioPort, lv2:InputPort;
+        lv2:index 0;
+        lv2:symbol "In1";
+        lv2:name "In 1";
+        lv2:shortname "In 1";
+    ],
+    [
+        a lv2:AudioPort, lv2:InputPort;
+        lv2:index 1;
+        lv2:symbol "In2";
+        lv2:name "In 2";
+        lv2:shortname "In 2";
+    ],
+    [
+        a lv2:AudioPort, lv2:OutputPort;
+        lv2:index 2;
+        lv2:symbol "Out1";
+        lv2:name "Out 1";
+        lv2:shortname "Out 1";
+    ],
+    [
+        a lv2:AudioPort, lv2:OutputPort;
+        lv2:index 3;
+        lv2:symbol "Out2";
+        lv2:name "Out 2";
+        lv2:shortname "Out 2";
+    ],
+    [
+        a lv2:AudioPort, lv2:OutputPort;
+        lv2:index 4;
+        lv2:symbol "OutMono";
+        lv2:name "Out Mono";
+        lv2:shortname "Mono";
+    ],
+    [
+        a lv2:InputPort, lv2:ControlPort;
+        lv2:index 5;
+        lv2:symbol "summedGain";
+        lv2:name "Summed Gain";
+        lv2:portProperty lv2:enumeration , lv2:integer ;
+        lv2:default 0.5 ;
+        lv2:minimum 0 ;
+        lv2:maximum 1 ;
+        lv2:scalePoint
+        [
+            rdfs:label "0.0dB" ;
+            rdf:value 1
+        ] , [
+            rdfs:label "-3.0dB" ;
+            rdf:value 0.75
+        ], [
+            rdfs:label "-6.0dB" ;
+            rdf:value 0.5
+        ]
+    ],
+    [
+        a lv2:ControlPort, lv2:OutputPort ;
+        lv2:index 6 ;
+        lv2:symbol "Status" ;
+        lv2:name "Status" ;
+        lv2:minimum 0 ;
+        lv2:maximum 3 ;
+        lv2:default 0 ;
     ]
-]
-.
+    .

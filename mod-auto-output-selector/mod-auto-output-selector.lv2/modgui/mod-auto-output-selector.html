@@ -1,11 +1,17 @@
-<div class="mod-pedal mod-auto-input-selector{{{cns}}}">
+<div class="mod-pedal mod-auto-output-selector">
     <div mod-role="drag-handle" class="mod-drag-handle"></div>
+    <div class="mod-auto-output-selector-status"></div>
     <div class="mod-pedal-input">
         {{#effect.ports.audio.input}}
         <div class="mod-input mod-input-disconnected" title="{{name}}" mod-role="input-audio-port" mod-port-symbol="{{symbol}}">
             <div class="mod-pedal-input-image"></div>
         </div>
         {{/effect.ports.audio.input}}
+        {{#effect.ports.midi.input}}
+        <div class="mod-input mod-input-disconnected" title="{{name}}" mod-role="input-midi-port" mod-port-symbol="{{symbol}}">
+            <div class="mod-pedal-input-image"></div>
+        </div>
+        {{/effect.ports.midi.input}}
     </div>
     <div class="mod-pedal-output">
         {{#effect.ports.audio.output}}
@@ -13,5 +19,10 @@
             <div class="mod-pedal-output-image"></div>
         </div>
         {{/effect.ports.audio.output}}
+        {{#effect.ports.midi.output}}
+        <div class="mod-output mod-output-disconnected" title="{{name}}" mod-role="output-midi-port" mod-port-symbol="{{symbol}}">
+            <div class="mod-pedal-input-image"></div>
+        </div>
+        {{/effect.ports.midi.output}}
     </div>
 </div>

@@ -1,0 +1,17 @@
+@prefix modgui: <http://moddevices.com/ns/modgui#> .
+@prefix lv2:    <http://lv2plug.in/ns/lv2core#> .
+
+<https://mod.audio/plugins/mod-auto-output-selector>
+    modgui:gui [
+        modgui:resourcesDirectory <modgui> ;
+        modgui:iconTemplate <modgui/mod-auto-output-selector.html> ;
+        modgui:stylesheet <modgui/mod-auto-output-selector.css> ;
+        modgui:javascript <modgui/mod-auto-output-selector.js> ;
+        modgui:screenshot <modgui/mod-auto-output-selector_ss.png> ;
+        modgui:thumbnail <modgui/mod-auto-output-selector_tn.png> ;
+        modgui:brand "MOD" ;
+        modgui:label "Auto Output Selector" ;
+        modgui:monitoredOutputs [
+            lv2:symbol "Status";
+        ] ;
+    ] .

@@ -1,0 +1,25 @@
+.mod-auto-output-selector {
+    background-image:url(/resources/mod-auto-output-selector_bg.png{{{ns}}});
+    background-repeat:no-repeat;
+    height:274px;
+    width:200px;
+}
+.mod-auto-output-selector .mod-auto-output-selector-status {
+    background-image:url(/resources/mod-auto-output-selector_sprites.png{{{ns}}});
+    background-repeat:no-repeat;
+    background-position: 0px 0px;
+    background-size: 187px 304px;
+    position:relative;
+    top:114px;
+    left:7px;
+    width:187px;
+    height:76px;
+}
+.mod-auto-output-selector .mod-pedal-input,
+.mod-auto-output-selector .mod-pedal-output {
+    top:93px;
+}
+.mod-auto-output-selector .mod-pedal-input .mod-input,
+.mod-auto-output-selector .mod-pedal-output .mod-output {
+    margin-bottom:8px;
+}

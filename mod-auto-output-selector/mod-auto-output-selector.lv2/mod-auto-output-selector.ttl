@@ -15,65 +15,85 @@
 @prefix modgui: <http://moddevices.com/ns/modgui#>.
 @prefix epp: <http://lv2plug.in/ns/ext/port-props#>.
 
-<http://moddevices.com/plugins/mod-devel/mod-auto-output-selector>
-a lv2:Plugin, lv2:UtilityPlugin;
+<https://mod.audio/plugins/mod-auto-output-selector>
+    a doap:Plugin , lv2:Plugin , lv2:UtilityPlugin ;
 
-doap:name "Auto Output Selector";
-doap:license "GPL v2+";
-doap:developer [
-    foaf:name "Jan Janssen";
-    foaf:homepage <>;
-    foaf:mbox <mailto:jan@mod.audio>;
-    ];
+    doap:name "Auto Output Selector" ;
+    doap:license "http://spdx.org/licenses/GPL-2.0-or-later.html" ;
 
-doap:maintainer [
-    foaf:name "MOD";
-    foaf:homepage <http://mod.audio>;
-    foaf:mbox <mailto:jan@mod.audio;
-    ];
+    doap:developer [
+        foaf:name "Jan Janssen" ;
+        foaf:homepage <> ;
+        foaf:mbox <mailto:jan@mod.audio> ;
+    ] , [
+        foaf:name "falkTX" ;
+        foaf:homepage <> ;
+        foaf:mbox <mailto:falktx@mod.audio> ;
+    ] ;
 
-    lv2:minorVersion 3;
-    lv2:microVersion 0;
+    doap:maintainer [
+        foaf:name "MOD Audio";
+        foaf:homepage <https://mod.audio> ;
+        foaf:mbox <mailto:jan@mod.audio> ;
+    ] ;
 
-    lv2:project <http://lv2plug.in/ns/lv2> ;
-    lv2:requiredFeature urid:map ,
-        work:schedule ;
-    lv2:optionalFeature lv2:hardRTCapable ,
-        state:loadDefaultState ;
-    lv2:extensionData state:interface ,
-        work:interface ;
+    lv2:minorVersion 3 ;
+    lv2:microVersion 0 ;
 
-rdfs:comment """
+    lv2:requiredFeature urid:map , work:schedule ;
+    lv2:optionalFeature lv2:hardRTCapable , state:loadDefaultState ;
+    lv2:extensionData state:interface , work:interface ;
 
-""";
+    mod:brand "MOD" ;
 
-lv2:port
-[
-    a lv2:AudioPort, lv2:InputPort;
-    lv2:index 0;
-    lv2:symbol "In1";
-    lv2:name "In 1";
-    lv2:shortname "In 1";
-],
-[
-    a lv2:AudioPort, lv2:InputPort;
-    lv2:index 1;
-    lv2:symbol "In2";
-    lv2:name "In 2";
-    lv2:shortname "In 2";
-],
-[
-    a lv2:AudioPort, lv2:OutputPort;
-    lv2:index 2;
-    lv2:symbol "Out1";
-    lv2:name "Out 1";
-    lv2:shortname "Out 1";
-],
-[
-    a lv2:AudioPort, lv2:OutputPort;
-    lv2:index 3;
-    lv2:symbol "Out2";
-    lv2:name "Out 2";
-    lv2:shortname "Out 2";
-]
-.
+    rdfs:comment """
+The MOD Auto Output Selector is a plugin that detects which hardware outputs have a cable plugged in.
+It then uses that information to automatically route the plugin inputs to the plugin outputs corresponding with the connected hardware output(s).
+
+The routing logic is as follows:
+- When both hardware outputs have cables plugged in, it will simply pass the plugin inputs through to the plugin outputs.
+- When only a single hardware output has a cable plugged in, it will sum the two plugin inputs and send it to the corresponding plugin output.
+
+The summed signal has 6dB of gain reduction applied to maintain uniform signal levels on the plugin outputs.
+
+Please note that this plugin is designed for the MOD Dwarf; other devices are not supported.
+
+Features:
+Plugin by MOD Audio
+    """ ;
+
+    lv2:port
+    [
+        a lv2:AudioPort, lv2:InputPort ;
+        lv2:index 0 ;
+        lv2:symbol "In1" ;
+        lv2:name "In 1" ;
+    ],
+    [
+        a lv2:AudioPort, lv2:InputPort ;
+        lv2:index 1 ;
+        lv2:symbol "In2" ;
+        lv2:name "In 2" ;
+    ],
+    [
+        a lv2:AudioPort, lv2:OutputPort ;
+        lv2:index 2 ;
+        lv2:symbol "Out1" ;
+        lv2:name "Out 1" ;
+    ],
+    [
+        a lv2:AudioPort, lv2:OutputPort ;
+        lv2:index 3 ;
+        lv2:symbol "Out2" ;
+        lv2:name "Out 2" ;
+    ],
+    [
+        a lv2:ControlPort, lv2:OutputPort ;
+        lv2:index 4 ;
+        lv2:symbol "Status" ;
+        lv2:name "Status" ;
+        lv2:minimum 0 ;
+        lv2:maximum 3 ;
+        lv2:default 0 ;
+    ]
+    .
