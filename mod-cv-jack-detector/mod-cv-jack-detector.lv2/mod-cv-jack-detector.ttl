@@ -15,78 +15,107 @@
 @prefix modgui: <http://moddevices.com/ns/modgui#>.
 @prefix epp: <http://lv2plug.in/ns/ext/port-props#>.
 
-<http://moddevices.com/plugins/mod-devel/mod-cv-jack-detector>
-a lv2:Plugin, mod:ControlVoltagePlugin;
+<https://mod.audio/plugins/mod-cv-jack-detector>
+    a doap:Project, lv2:Plugin, mod:ControlVoltagePlugin ;
 
-doap:name "CV Jack Detector";
-doap:license "GPL v2+";
-doap:developer [
-    foaf:name "Jan Janssen";
-    foaf:homepage <>;
-    foaf:mbox <mailto:jan@mod.audio>;
+    doap:name "CV Jack Detector" ;
+    doap:license "http://spdx.org/licenses/GPL-2.0-or-later.html" ;
+
+    doap:developer [
+        foaf:name "Jan Janssen" ;
+        foaf:homepage <> ;
+        foaf:mbox <mailto:jan@mod.audio> ;
+    ] , [
+        foaf:name "falkTX" ;
+        foaf:homepage <> ;
+        foaf:mbox <mailto:falktx@mod.audio> ;
+    ] ;
+
+    doap:maintainer [
+        foaf:name "MOD" ;
+        foaf:homepage <http://mod.audio> ;
+        foaf:mbox <mailto:jan@mod.audio> ;
     ];
 
-doap:maintainer [
-    foaf:name "MOD";
-    foaf:homepage <http://mod.audio>;
-    foaf:mbox <mailto:jan@mod.audio;
-    ];
-
-    lv2:minorVersion 3;
-    lv2:microVersion 0;
+    lv2:minorVersion 1 ;
+    lv2:microVersion 0 ;
 
     lv2:project <http://lv2plug.in/ns/lv2> ;
-    lv2:requiredFeature urid:map ,
-        work:schedule ;
-    lv2:optionalFeature lv2:hardRTCapable ,
-        state:loadDefaultState ;
-    lv2:extensionData state:interface ,
-        work:interface ;
+    lv2:requiredFeature urid:map , work:schedule ;
+    lv2:optionalFeature lv2:hardRTCapable , state:loadDefaultState ;
+    lv2:extensionData state:interface , work:interface ;
 
 rdfs:comment """
+The MOD CV Jack Detector is a plugin that detects which hardware audio inputs and outputs have a cable plugged in.
+It then uses that information to set the level of a CV output port.
 
-A plugin that detects what HW jacks are plugged into the Dwarf and translates that to a CV signal
+The plugin has just one parameter.
+Use it to select which input(s) or output(s) the plugin listens to.
 
+The CV output will send out 0V when no cable is plugged into the selected port(s) and 10V when a cable is plugged in.
+
+Please note that this plugin is designed for the MOD Dwarf; other devices are not supported.
+
+Features:
+Plugin by MOD Audio
 """;
 
-lv2:port
-[
-    a lv2:OutputPort, lv2:CVPort, mod:CVPort;
-    lv2:index 0;
-    lv2:minimum 0.0 ;
-    lv2:maximum 10.0 ;
-    lv2:symbol "Cvoutput";
-    lv2:name "CV Output";
-]
-,
-[
-    a lv2:InputPort, lv2:ControlPort;
-    lv2:index 1;
-    lv2:symbol "LISTEN_PORT";
-    lv2:name "Port";
-    lv2:portProperty lv2:enumeration , lv2:integer ;
-    lv2:default 0 ;
-    lv2:minimum 0 ;
-    lv2:maximum 6 ;
-    lv2:scalePoint
+    lv2:port
     [
-        rdfs:label "Input 1" ;
-        rdf:value 0 
-    ] , [
-        rdfs:label "Input 2" ;
-        rdf:value 1 
-    ], [
-        rdfs:label "Input 1 + 2" ;
-        rdf:value 2 
-    ], [
-        rdfs:label "Output 1" ;
-        rdf:value 3 
-    ], [
-        rdfs:label "Output 2" ;
-        rdf:value 4 
-    ], [
-        rdfs:label "Output 1 + 2" ;
-        rdf:value 5 
+        a lv2:OutputPort, lv2:CVPort, mod:CVPort ;
+        lv2:index 0;
+        lv2:minimum 0.0 ;
+        lv2:maximum 10.0 ;
+        lv2:symbol "Output" ;
+        lv2:name "CV Output" ;
     ]
-]
-.
+    ,
+    [
+        a lv2:InputPort, lv2:ControlPort ;
+        lv2:index 1 ;
+        lv2:symbol "Port" ;
+        lv2:name "Port";
+        lv2:portProperty lv2:enumeration , lv2:integer ;
+        lv2:default 0 ;
+        lv2:minimum 0 ;
+        lv2:maximum 6 ;
+        lv2:scalePoint
+        [
+            rdfs:label "Input 1" ;
+            rdf:value 0
+        ] , [
+            rdfs:label "Input 2" ;
+            rdf:value 1
+        ], [
+            rdfs:label "Input 1 + 2" ;
+            rdf:value 2
+        ], [
+            rdfs:label "Output 1" ;
+            rdf:value 3
+        ], [
+            rdfs:label "Output 2" ;
+            rdf:value 4
+        ], [
+            rdfs:label "Output 1 + 2" ;
+            rdf:value 5
+        ]
+    ],
+    [
+        a lv2:ControlPort, lv2:OutputPort ;
+        lv2:index 2 ;
+        lv2:symbol "StatusInput" ;
+        lv2:name "Input Status" ;
+        lv2:minimum 0 ;
+        lv2:maximum 3 ;
+        lv2:default 0 ;
+    ],
+    [
+        a lv2:ControlPort, lv2:OutputPort ;
+        lv2:index 3 ;
+        lv2:symbol "StatusOutput" ;
+        lv2:name "Output Status" ;
+        lv2:minimum 0 ;
+        lv2:maximum 3 ;
+        lv2:default 0 ;
+    ]
+    .

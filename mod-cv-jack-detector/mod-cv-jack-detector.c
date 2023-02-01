@@ -1,8 +1,6 @@
-#include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdbool.h>
-#include <math.h>
+#include <stdatomic.h>
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,7 +21,7 @@
 #include "lv2/lv2plug.in/ns/ext/worker/worker.h"
 #include "lv2/lv2plug.in/ns/lv2core/lv2.h"
 
-#define PLUGIN_URI "http://moddevices.com/plugins/mod-devel/mod-cv-jack-detector"
+#define PLUGIN_URI "https://mod.audio/plugins/mod-cv-jack-detector"
 #define PLUGIN__loadHWJackValues  PLUGIN_URI "#loadHWJackValues"
 
 // These hardcoded paths are very, very dirty
@@ -45,18 +43,27 @@
 #define REFRESH_TIME_S      2
 
 typedef enum {
-	L_OUTPUT    = 0,
-    LISTEN_PORT
+    L_OUTPUT = 0,
+    LISTEN_PORT,
+    STATUS_INPUT,
+    STATUS_OUTPUT
 } PortIndex;
 
 typedef enum {
-    INP_1    = 0,
+    INP_1 = 0,
     INP_2,
     INP_12,
     OUTP_1,
     OUTP_2,
     OUTP_12
 } ListenPorts;
+
+typedef enum {
+    StatusDisconnected = 0x0,
+    StatusConnected1 = 0x1,
+    StatusConnected2 = 0x2,
+    StatusConnectedBoth = StatusConnected1|StatusConnected2
+} StatusReport;
 
 typedef struct {
     LV2_URID plugin;
@@ -92,17 +99,12 @@ typedef struct {
     URIs uris;
 
     float* output;
-    float* port;
+    const float* targetPort;
+    float* statusInput;
+    float* statusOutput;
 
-    int inp_jack_1_value;
-    int inp_jack_2_value;
-    int outp_jack_1_value;
-    int outp_jack_2_value;
-
-    FILE* inp_jack_1_file;
-    FILE* inp_jack_2_file;
-    FILE* outp_jack_1_file;
-    FILE* outp_jack_2_file;
+    atomic_int status_in_int;
+    atomic_int status_out_int;
 
     uint32_t samplerate;
     uint32_t refresh_counter;
@@ -135,40 +137,82 @@ map_uris(LV2_URID_Map* map, URIs* uris)
 static void
 ReadHWJackValues(Plugin* self)
 {
-    self->inp_jack_1_file = fopen (GPIO_INP_JACK_1, "r");
-    if (self->inp_jack_1_file == NULL) {
+    FILE* f;
+    int value1 = 0, value2 = 0;
+
+    f = fopen(GPIO_INP_JACK_1, "r");
+    if (f == NULL) {
         lv2_log_error(&self->logger, "Missing input 1 GPIO file\n");
     }
     else {
-        fscanf (self->inp_jack_1_file, "%d", &self->inp_jack_1_value);
-        fclose(self->inp_jack_1_file);
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wunused-result"
+        fscanf(f, "%d", &value1);
+        #pragma GCC diagnostic pop
+        fclose(f);
     }
 
-    self->inp_jack_2_file = fopen (GPIO_INP_JACK_2, "r");
-    if (self->inp_jack_2_file == NULL) {
+    f = fopen(GPIO_INP_JACK_2, "r");
+    if (f == NULL) {
         lv2_log_error(&self->logger, "Missing input 2 GPIO file\n");
     }
     else {
-        fscanf (self->inp_jack_2_file, "%d", &self->inp_jack_2_value);
-        fclose(self->inp_jack_2_file);
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wunused-result"
+        fscanf(f, "%d", &value2);
+        #pragma GCC diagnostic pop
+        fclose(f);
     }
 
-    self->outp_jack_1_file = fopen (GPIO_OUTP_JACK_1, "r");
-    if (self->outp_jack_1_file == NULL) {
+    if (value1 && value2) {
+        self->status_in_int = StatusConnectedBoth;
+    }
+    else if (value2) {
+        self->status_in_int = StatusConnected2;
+    }
+    else if (value1) {
+        self->status_in_int = StatusConnected1;
+    }
+    else {
+        self->status_in_int = StatusDisconnected;
+    }
+
+    value1 = value2 = 0;
+    f = fopen(GPIO_OUTP_JACK_1, "r");
+    if (f == NULL) {
         lv2_log_error(&self->logger, "Missing output 1 GPIO file\n");
     }
     else {
-        fscanf (self->outp_jack_1_file, "%d", &self->outp_jack_1_value);
-        fclose(self->outp_jack_1_file);
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wunused-result"
+        fscanf(f, "%d", &value1);
+        #pragma GCC diagnostic pop
+        fclose(f);
     }
 
-    self->outp_jack_2_file = fopen (GPIO_OUTP_JACK_2, "r");
-    if (self->outp_jack_2_file == NULL) {
+    f = fopen(GPIO_OUTP_JACK_2, "r");
+    if (f == NULL) {
         lv2_log_error(&self->logger, "Missing output 2 GPIO file\n");
     }
     else {
-        fscanf (self->outp_jack_2_file, "%d", &self->outp_jack_2_value);
-        fclose(self->outp_jack_2_file);
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wunused-result"
+        fscanf(f, "%d", &value2);
+        #pragma GCC diagnostic pop
+        fclose(f);
+    }
+
+    if (value1 && value2) {
+        self->status_out_int = StatusConnectedBoth;
+    }
+    else if (value2) {
+        self->status_out_int = StatusConnected2;
+    }
+    else if (value1) {
+        self->status_out_int = StatusConnected1;
+    }
+    else {
+        self->status_out_int = StatusDisconnected;
     }
 }
 
@@ -185,7 +229,7 @@ work(LV2_Handle                  instance,
      uint32_t                    size,
      const void*                 data)
 {
-    Plugin*        self = (Plugin*)instance;
+    Plugin*         self = (Plugin*)instance;
     const LV2_Atom* atom = (const LV2_Atom*)data;
 
     if (atom->type == self->uris.uri_loadHWJackValues) {
@@ -206,7 +250,6 @@ work_response(LV2_Handle  instance,
               uint32_t    size,
               const void* data)
 {
-
     return LV2_WORKER_SUCCESS;
 }
 
@@ -215,16 +258,22 @@ connect_port(LV2_Handle instance,
              uint32_t   port,
              void*      data)
 {
-	Plugin* self = (Plugin*)instance;
+    Plugin* self = (Plugin*)instance;
 
-	switch ((PortIndex)port) {
-	case L_OUTPUT:
-		self->output = (float*)data;
-		break;
-    case LISTEN_PORT:
-        self->port = (float*)data;
+    switch ((PortIndex)port) {
+    case L_OUTPUT:
+        self->output = (float*)data;
         break;
-	}
+    case LISTEN_PORT:
+        self->targetPort = (const float*)data;
+        break;
+    case STATUS_INPUT:
+        self->statusInput = (float*)data;
+        break;
+    case STATUS_OUTPUT:
+        self->statusOutput = (float*)data;
+        break;
+    }
 }
 
 static LV2_Handle
@@ -267,7 +316,7 @@ instantiate(const LV2_Descriptor*     descriptor,
 
     self->refresh_counter = self->samplerate * REFRESH_TIME_S;
 
-	return (LV2_Handle)self;
+    return (LV2_Handle)self;
 
 fail:
     free(self);
@@ -280,14 +329,13 @@ cleanup(LV2_Handle instance)
 {
     Plugin* self = (Plugin*) instance;
 
-	free(self);
+    free(self);
 }
 
 static void
 activate(LV2_Handle instance)
 {
 }
-
 
 static void
 run(LV2_Handle instance, uint32_t n_samples)
@@ -296,62 +344,49 @@ run(LV2_Handle instance, uint32_t n_samples)
 
     float CV_value = 0;
 
-    switch ((int)*self->port)
-    {
-        case INP_1:
-            CV_value = self->inp_jack_1_value * 10.f;
+    switch ((int)*self->targetPort) {
+    case INP_1:
+        CV_value = self->status_in_int & StatusConnected1 ? 10.f : 0.f;
         break;
-
-        case INP_2:
-            CV_value = self->inp_jack_2_value * 10.f;
+    case INP_2:
+        CV_value = self->status_in_int & StatusConnected2 ? 10.f : 0.f;
         break;
-
-        case INP_12:
-            if ((self->inp_jack_1_value == 1) && (self->inp_jack_2_value == 1))
-                CV_value = 10.f;
-            else
-                CV_value = 0.f;
+    case INP_12:
+        CV_value = (self->status_in_int & StatusConnectedBoth) == StatusConnectedBoth ? 10.f : 0.f;
         break;
-
-        case OUTP_1:
-            CV_value = self->outp_jack_1_value * 10.f;
+    case OUTP_1:
+        CV_value = self->status_out_int & StatusConnected1 ? 10.f : 0.f;
         break;
-
-        case OUTP_2:
-            CV_value = self->outp_jack_2_value * 10.f;
+    case OUTP_2:
+        CV_value = self->status_out_int & StatusConnected2 ? 10.f : 0.f;
         break;
-
-        case OUTP_12:
-            if ((self->outp_jack_1_value == 1) && (self->outp_jack_2_value == 1))
-                CV_value = 10.f;
-            else
-                CV_value = 0.f;
+    case OUTP_12:
+        CV_value = (self->status_out_int & StatusConnectedBoth) == StatusConnectedBoth ? 10.f : 0.f;
         break;
     }
 
-    for ( uint32_t i = 0; i < n_samples; i++)
-    {
+    for (uint32_t i = 0; i < n_samples; i++) {
         self->output[i] = CV_value;
-
-        if (self->refresh_counter > 0) {
-            self->refresh_counter--;
-        }
-        else {
-            self->refresh_counter = self->samplerate * REFRESH_TIME_S;
-
-            // do not read files in realtime thread
-            LV2_Atom atom = { 0 , self->uris.uri_loadHWJackValues };
-            self->schedule->schedule_work(self->schedule->handle, sizeof(atom), &atom);
-        }
     }
 
+    if (self->refresh_counter >= n_samples)
+    {
+        self->refresh_counter -= n_samples;
+    }
+    else
+    {
+        self->refresh_counter = self->samplerate * REFRESH_TIME_S;
+
+        // do not read files in realtime thread
+        LV2_Atom atom = { 0 , self->uris.uri_loadHWJackValues };
+        self->schedule->schedule_work(self->schedule->handle, sizeof(atom), &atom);
+    }
 }
 
 static void
 deactivate(LV2_Handle instance)
 {
 }
-
 
 static const void*
 extension_data(const char* uri)
@@ -364,22 +399,22 @@ extension_data(const char* uri)
 }
 
 static const LV2_Descriptor descriptor = {
-	PLUGIN_URI,
-	instantiate,
-	connect_port,
-	activate,
-	run,
-	deactivate,
-	cleanup,
-	extension_data
+    PLUGIN_URI,
+    instantiate,
+    connect_port,
+    activate,
+    run,
+    deactivate,
+    cleanup,
+    extension_data
 };
 
 LV2_SYMBOL_EXPORT
 const LV2_Descriptor*
 lv2_descriptor(uint32_t index)
 {
-	switch (index) {
-	case 0:  return &descriptor;
-	default: return NULL;
-	}
+    switch (index) {
+    case 0: return &descriptor;
+    default: return NULL;
+    }
 }

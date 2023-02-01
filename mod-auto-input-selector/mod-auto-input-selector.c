@@ -390,7 +390,6 @@ deactivate(LV2_Handle instance)
 {
 }
 
-
 static const void*
 extension_data(const char* uri)
 {
