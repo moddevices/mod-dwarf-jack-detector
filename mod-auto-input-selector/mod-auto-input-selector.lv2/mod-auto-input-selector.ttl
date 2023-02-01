@@ -16,7 +16,7 @@
 @prefix epp: <http://lv2plug.in/ns/ext/port-props#>.
 
 <https://mod.audio/plugins/mod-auto-input-selector>
-    a doap:Plugin , lv2:Plugin , lv2:UtilityPlugin ;
+    a doap:Project , lv2:Plugin , lv2:UtilityPlugin ;
 
     doap:name "Auto Input Selector";
     doap:license "http://spdx.org/licenses/GPL-2.0-or-later.html" ;
@@ -69,35 +69,31 @@ Plugin by MOD Audio
         lv2:index 0;
         lv2:symbol "In1";
         lv2:name "In 1";
-        lv2:shortname "In 1";
     ],
     [
         a lv2:AudioPort, lv2:InputPort;
         lv2:index 1;
         lv2:symbol "In2";
         lv2:name "In 2";
-        lv2:shortname "In 2";
     ],
     [
         a lv2:AudioPort, lv2:OutputPort;
         lv2:index 2;
         lv2:symbol "Out1";
         lv2:name "Out 1";
-        lv2:shortname "Out 1";
     ],
     [
         a lv2:AudioPort, lv2:OutputPort;
         lv2:index 3;
         lv2:symbol "Out2";
         lv2:name "Out 2";
-        lv2:shortname "Out 2";
     ],
     [
         a lv2:AudioPort, lv2:OutputPort;
         lv2:index 4;
         lv2:symbol "OutMono";
         lv2:name "Out Mono";
-        lv2:shortname "Mono";
+        lv2:shortName "Mono";
     ],
     [
         a lv2:InputPort, lv2:ControlPort;
