@@ -15,6 +15,32 @@
     width:182px;
     height:136px;
 }
+.mod-auto-input-selector .mod-auto-input-selector-labels {
+    position:absolute;
+    top:calc(91px - 1em);
+    left:7px;
+    width:182px;
+    height:136px;
+    color:#fff;
+    font-size:14px;
+}
+.mod-auto-input-selector .mod-auto-input-selector-left {
+    position:absolute;
+    left:10px;
+}
+.mod-auto-input-selector .mod-auto-input-selector-right {
+    position:absolute;
+    right:10px;
+}
+.mod-auto-input-selector .mod-auto-input-selector-1 {
+    top:0px;
+}
+.mod-auto-input-selector .mod-auto-input-selector-2 {
+    top:60px;
+}
+.mod-auto-input-selector .mod-auto-input-selector-M {
+    top:120px;
+}
 .mod-auto-input-selector .mod-pedal-input,
 .mod-auto-input-selector .mod-pedal-output {
     top:70px;

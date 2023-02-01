@@ -15,6 +15,29 @@
     width:187px;
     height:76px;
 }
+.mod-auto-output-selector .mod-auto-output-selector-labels {
+    position:absolute;
+    top:calc(114px - 1em);
+    left:7px;
+    width:182px;
+    height:136px;
+    color:#fff;
+    font-size:14px;
+}
+.mod-auto-output-selector .mod-auto-output-selector-left {
+    position:absolute;
+    left:10px;
+}
+.mod-auto-output-selector .mod-auto-output-selector-right {
+    position:absolute;
+    right:10px;
+}
+.mod-auto-output-selector .mod-auto-output-selector-1 {
+    top:0px;
+}
+.mod-auto-output-selector .mod-auto-output-selector-2 {
+    top:62px;
+}
 .mod-auto-output-selector .mod-pedal-input,
 .mod-auto-output-selector .mod-pedal-output {
     top:93px;

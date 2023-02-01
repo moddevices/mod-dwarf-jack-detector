@@ -1,6 +1,12 @@
 <div class="mod-pedal mod-auto-output-selector">
     <div mod-role="drag-handle" class="mod-drag-handle"></div>
     <div class="mod-auto-output-selector-status"></div>
+    <div class="mod-auto-output-selector-labels">
+        <span class="mod-auto-output-selector-left mod-auto-output-selector-1">1</span>
+        <span class="mod-auto-output-selector-left mod-auto-output-selector-2">2</span>
+        <span class="mod-auto-output-selector-right mod-auto-output-selector-1">1</span>
+        <span class="mod-auto-output-selector-right mod-auto-output-selector-2">2</span>
+    </div>
     <div class="mod-pedal-input">
         {{#effect.ports.audio.input}}
         <div class="mod-input mod-input-disconnected" title="{{name}}" mod-role="input-audio-port" mod-port-symbol="{{symbol}}">
