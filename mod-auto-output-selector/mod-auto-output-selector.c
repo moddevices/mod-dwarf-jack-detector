@@ -342,15 +342,12 @@ run(LV2_Handle instance, uint32_t n_samples)
             self->out2[i] = (self->in1[i] + self->in2[i]) * 0.5f;
         }
         break;
-    case StatusConnectedBoth:
+    // either both connect or both disconnected
+    default:
         if (self->out1 != self->in1)
             memcpy(self->out1, self->in1, sizeof(float)*n_samples);
         if (self->out2 != self->in2)
             memcpy(self->out2, self->in2, sizeof(float)*n_samples);
-        break;
-    default:
-        memset(self->out1, 0, sizeof(float)*n_samples);
-        memset(self->out2, 0, sizeof(float)*n_samples);
         break;
     }
 
