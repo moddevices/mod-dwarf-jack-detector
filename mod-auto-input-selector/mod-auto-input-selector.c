@@ -65,19 +65,6 @@ typedef enum {
     StatusConnectedBoth
 } StatusReport;
 
-typedef enum {
-    I1_O1 = 0,
-    I2_O1,
-    I12_O1,
-    I1_O2,
-    I2_O2,
-    I12_O2,
-    I1_O12,
-    I2_O12,
-    I12_O12,
-    NO_JACKS
-} PatchState;
-
 typedef struct {
     LV2_URID plugin;
     LV2_URID atom_Path;
@@ -119,10 +106,12 @@ typedef struct {
     float* outMono;
     float* status;
 
+#ifdef _MOD_DEVICE_DWARF
     atomic_int status_int;
 
     uint32_t samplerate;
     uint32_t refresh_counter;
+#endif
 } Plugin;
 
 static inline void
@@ -149,6 +138,7 @@ map_uris(LV2_URID_Map* map, URIs* uris)
     uris->uri_loadHWJackValues = map->map(map->handle, PLUGIN__loadHWJackValues);
 }
 
+#ifdef _MOD_DEVICE_DWARF
 static void
 ReadHWJackValues(Plugin* self)
 {
@@ -231,6 +221,7 @@ work_response(LV2_Handle  instance,
 {
     return LV2_WORKER_SUCCESS;
 }
+#endif
 
 static void
 connect_port(LV2_Handle instance,
@@ -276,7 +267,6 @@ instantiate(const LV2_Descriptor*     descriptor,
         return NULL;
     }
 
-    self->samplerate = rate;
     // Get host features
     for (int i = 0; features[i]; ++i) {
         if (!strcmp(features[i]->URI, LV2_URID__map)) {
@@ -287,6 +277,9 @@ instantiate(const LV2_Descriptor*     descriptor,
             self->log = (LV2_Log_Log*)features[i]->data;
         }
     }
+
+    lv2_log_logger_init(&self->logger, self->map, self->log);
+
     if (!self->map) {
         lv2_log_error(&self->logger, "Missing feature urid:map\n");
         goto fail;
@@ -298,11 +291,13 @@ instantiate(const LV2_Descriptor*     descriptor,
     // Map URIs and initialise forge/logger
     map_uris(self->map, &self->uris);
     lv2_atom_forge_init(&self->forge, self->map);
-    lv2_log_logger_init(&self->logger, self->map, self->log);
 
+#ifdef _MOD_DEVICE_DWARF
     ReadHWJackValues(self);
 
-    self->refresh_counter = self->samplerate * REFRESH_TIME_S;
+    self->samplerate = rate;
+    self->refresh_counter = rate * REFRESH_TIME_S;
+#endif
 
     return (LV2_Handle)self;
 
@@ -342,6 +337,7 @@ run(LV2_Handle instance, uint32_t n_samples)
         }
     }
 
+#ifdef _MOD_DEVICE_DWARF
     switch (self->status_int)
     {
     case StatusConnectedOnly1:
@@ -355,12 +351,14 @@ run(LV2_Handle instance, uint32_t n_samples)
         memcpy(self->outMono, self->in2, sizeof(float)*n_samples);
         break;
     case StatusConnectedBoth:
+#endif
         memcpy(self->out1, self->in1, sizeof(float)*n_samples);
         memcpy(self->out2, self->in2, sizeof(float)*n_samples);
         // sum and possibly compensate for gain
         for (uint32_t i = 0; i < n_samples; i++) {
             self->outMono[i] = (self->in1[i] + self->in2[i]) * summedGain;
         }
+#ifdef _MOD_DEVICE_DWARF
         break;
     default:
         memset(self->out1, 0, sizeof(float)*n_samples);
@@ -368,9 +366,9 @@ run(LV2_Handle instance, uint32_t n_samples)
         memset(self->outMono, 0, sizeof(float)*n_samples);
         break;
     }
+#endif
 
-    *self->status = self->status_int;
-
+#ifdef _MOD_DEVICE_DWARF
     if (self->refresh_counter >= n_samples)
     {
         self->refresh_counter -= n_samples;
@@ -383,6 +381,11 @@ run(LV2_Handle instance, uint32_t n_samples)
         LV2_Atom atom = { 0 , self->uris.uri_loadHWJackValues };
         self->schedule->schedule_work(self->schedule->handle, sizeof(atom), &atom);
     }
+
+    *self->status = self->status_int;
+#else
+    *self->status = StatusDisconnected;
+#endif
 }
 
 static void
@@ -393,10 +396,12 @@ deactivate(LV2_Handle instance)
 static const void*
 extension_data(const char* uri)
 {
+#ifdef _MOD_DEVICE_DWARF
     static const LV2_Worker_Interface worker = { work, work_response, NULL };
     if (!strcmp(uri, LV2_WORKER__interface)) {
         return &worker;
     }
+#endif
     return NULL;
 }
 
