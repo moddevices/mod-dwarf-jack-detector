@@ -9,6 +9,7 @@
         modgui:javascript <modgui/mod-auto-input-selector.js> ;
         modgui:screenshot <modgui/mod-auto-input-selector_ss.png> ;
         modgui:thumbnail <modgui/mod-auto-input-selector_tn.png> ;
+        modgui:discussionURL <https://forum.mod.audio/t/mod-auto-input-selector-auto-output-selector/9116> ;
         modgui:brand "MOD" ;
         modgui:label "Auto Input Selector" ;
         modgui:monitoredOutputs [
