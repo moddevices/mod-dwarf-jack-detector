@@ -362,7 +362,7 @@ run(LV2_Handle instance, uint32_t n_samples)
         self->schedule->schedule_work(self->schedule->handle, sizeof(atom), &atom);
     }
 #else
-    *self->status = StatusDisconnected;
+    *self->status = StatusConnectedBoth;
 #endif
 }
 

@@ -384,7 +384,7 @@ run(LV2_Handle instance, uint32_t n_samples)
 
     *self->status = self->status_int;
 #else
-    *self->status = StatusDisconnected;
+    *self->status = StatusConnectedBoth;
 #endif
 }
 
